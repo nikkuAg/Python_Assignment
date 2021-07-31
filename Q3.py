@@ -35,6 +35,9 @@ def decorator(func):
             sql = "CREATE TABLE users (username varchar(255), Name varchar(255), City varchar(255), Work varchar(255), Scrapped int);"
             mycursor.execute(sql)
             mydb.commit()
+            sql = "INSERT INTO users (username, Scrapped) VALUES ("radhikagarg1601", 0), ("ritvik.jain.52206", 0), ("rishi.ranjan.54966", 0), ("utkarsh.parkhi.1", 0), ("anshul.d.sharma.7", 0);"
+            mycursor.execute(sql)
+            mydb.commit()
             exit = 1
         if exit == 1:
             sql = "SELECT * FROM users WHERE username = '" + str(username) + "'" 
