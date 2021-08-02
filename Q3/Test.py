@@ -1,33 +1,32 @@
 import unittest
-from Function import facebookLogin, resetDatabase, scrap
+import constant
+from Function import facebookLogin, resetDatabase, scrap, driver
 
 
 class Test_scrapping(unittest.TestCase):
-    # Testing scrap function for the first time\
     def test_scrappingFirst(self):
         resetDatabase()
-        self.assertEqual(scrap("radhikagarg1601"), "Scrapped")
-        self.assertEqual(scrap("anshul.d.sharma.7"), "Scrapped")
-        self.assertEqual(scrap("utkarsh.parkhi.1"), "Scrapped")
-        self.assertEqual(scrap("rishi.ranjan.54966"), "Scrapped")
-        self.assertEqual(scrap("ritvik.jain.52206"), "Scrapped")
+        self.assertEqual(scrap(constant.radhika), "Scrapped")
+        self.assertEqual(scrap(constant.anshul), "Scrapped")
+        self.assertEqual(scrap(constant.utkarsh), "Scrapped")
+        self.assertEqual(scrap(constant.rishi), "Scrapped")
+        self.assertEqual(scrap(constant.ritvik), "Scrapped")
 
-    # Testing scrap function for the second time
     def test_scrappingSecond(self):
-        self.assertEqual(scrap("radhikagarg1601"), "Show function")
-        self.assertEqual(scrap("anshul.d.sharma.7"), "Show function")
-        self.assertEqual(scrap("utkarsh.parkhi.1"), "Show function")
-        self.assertEqual(scrap("rishi.ranjan.54966"), "Show function")
-        self.assertEqual(scrap("ritvik.jain.52206"), "Show function")
+        self.assertEqual(scrap(constant.radhika), "Show function")
+        self.assertEqual(scrap(constant.anshul), "Show function")
+        self.assertEqual(scrap(constant.utkarsh), "Show function")
+        self.assertEqual(scrap(constant.rishi), "Show function")
+        self.assertEqual(scrap(constant.ritvik), "Show function")
 
-    # Testing the decorator function
+        driver.close()
+
     def test_decorator(self):
         with self.assertRaises(Exception):
             scrap("radhikaarg1601")
         with self.assertRaises(Exception):
             scrap("a.divyansh.25")
 
-    # Testing Facebook Login
     def test_login(self):
         with self.assertRaises(Exception):
             facebookLogin("a.divyansh.25@gmail.com", "123456789")

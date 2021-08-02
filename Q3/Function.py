@@ -1,30 +1,22 @@
-import mysql.connector
+from config import mydb
+import constant
 import time
 from selenium import webdriver
 from getpass import getpass
 from selenium.webdriver.common.by import By
 from webdriver_manager import driver
 
-# Making connection to mysql
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="divyansh",
-    password="divyansh",
-    database="python_Assignment"
-)
 
 
 def resetDatabase():
     mycursor = mydb.cursor()
-    sql = "UPDATE users SET Name='NULL', City='NULL', Work='NULL', Scrapped='0';"
-    mycursor.execute(sql)
+    mycursor.execute(constant.sqlRest)
     mydb.commit()
 
 
 def decorator(func):
     def checkUsername(username):
         mycursor = mydb.cursor()
-        # Checking if the table exists in database
         sql = "SHOW TABLES;"
         mycursor.execute(sql)
         global exit
@@ -35,17 +27,13 @@ def decorator(func):
                 exit = 1
                 break
         if exit == 0:
-            # Creating the table if not present in database
-            sql = "CREATE TABLE users (username varchar(255), Name varchar(255), City varchar(255), Work varchar(255), Scrapped int);"
-            mycursor.execute(sql)
+            mycursor.execute(constant.sqlcTable)
             mydb.commit()
-            sql = "INSERT INTO users (username, Scrapped) VALUES ('radhikagarg1601', 0), ('ritvik.jain.52206', 0), ('rishi.ranjan.54966', 0), ('utkarsh.parkhi.1', 0), ('anshul.d.sharma.7', 0);"
-            mycursor.execute(sql)
+            mycursor.execute(constant.sqliTable)
             mydb.commit()
             exit = 1
         if exit == 1:
-            # Checking if username exists in database
-            sql = "SELECT * FROM users WHERE username = '" + str(username) + "'"
+            sql = constant.sqlSelect1 + username + "';"
             mycursor.execute(sql)
             result = mycursor.fetchall()
             if(result != []):
@@ -76,47 +64,43 @@ def scrap(username):
         Flogin = 1
     time.sleep(2)
     mycursor = mydb.cursor()
-    sql = "SELECT * FROM users WHERE username='" + username + "';"
+    sql = constant.sqlSelect1 + username + "';"
     mycursor.execute(sql)
     result = mycursor.fetchone()
     if result[4] == 0:
         URL = "https://m.facebook.com/{}".format(username) + "/about"
         driver.get(URL)
         time.sleep(2)
-        # Scrapping Name
-        name = driver.find_element(By.XPATH, '//*[@id="MChromeHeader"]/div/div[3]/a').text
-        # Scrapping City
-        city = driver.find_element(By.XPATH, '//*[@id="living"]//h4').text
-        workCount = len(driver.find_elements(By.XPATH, '//*[@id="work"]/div/*'))
+        name = driver.find_element(By.XPATH, constant.namePath).text
+        city = driver.find_element(By.XPATH, constant.cityPath).text
+        workCount = len(driver.find_elements(By.XPATH, constant.workList))
         work = []
         x = 1
-        # Scrapping Work
         while(x <= workCount):
             work.append(driver.find_element(By.XPATH, '//*[@id="work"]/div/div[' + str(x) + ']//span').text)
             x += 1
         dataWork = str(work).replace('[', '').replace("'", "").replace(']', '')
         getFullPage()
-        driver.find_element(By.XPATH, '//div[div[div[text()="Likes"]]]/div[3]/a').click()
+        driver.find_element(By.XPATH, constant.likePath).click()
         time.sleep(2)
-        likePage = len(driver.find_elements(By.XPATH, '//*[@id="timelineBody"]/div/div/div/*[div]'))
+        likePage = len(driver.find_elements(By.XPATH, constant.likesCount))
         x = 2
         favourites = {}
-        # Scrapping Favourites
         while(x <= likePage):
-            header = str(driver.find_element(By.XPATH, '//*[@id="timelineBody"]/div/div/div/div[' + str(x) + ']//header//div[text()]').text)
-            driver.find_element(By.XPATH, '//*[@id="timelineBody"]/div/div/div/div[' + str(x) + ']//header//a').click()
+            header = str(driver.find_element(By.XPATH, constant.header1 + str(x) + constant.header2).text)
+            driver.find_element(By.XPATH, constant.headerPage1 + str(x) + ']//header//a').click()
             time.sleep(2)
             y = 1
             key = []
             if(header != 'SPORTS TEAMS' and header != 'SPORTSPEOPLE'):
-                totalItems = len(driver.find_elements(By.XPATH, '//*[@id="timelineBody"]/div/div/div/div/*'))
+                totalItems = len(driver.find_elements(By.XPATH, constant.itemsPath))
                 while y <= totalItems:
-                    key.append(driver.find_element(By.XPATH, '//*[@id="timelineBody"]/div/div/div/div/div[' + str(y) + ']//div[@class="content"]/div[1]').text)
+                    key.append(driver.find_element(By.XPATH, constant.keyText1 + str(y) + constant.keyText2).text)
                     y += 1
             else:
-                totalItems = len(driver.find_elements(By.XPATH, '//*[@id="timelineBody"]/div/div/div/div/div/*'))
+                totalItems = len(driver.find_elements(By.XPATH, constant.item2Path))
                 while y <= totalItems:
-                    key.append(driver.find_element(By.XPATH, '//*[@id="timelineBody"]/div/div/div/div/div/div[' + str(y) + ']//span').text)
+                    key.append(driver.find_element(By.XPATH, constant.keyImage1 + str(y) + ']//span').text)
                     y += 1
             favourites.update({header: key})
             driver.back()
@@ -133,7 +117,7 @@ def scrap(username):
 
         return "Scrapped"
     else:
-        sql = "SELECT * FROM users WHERE username='" + username + "';"
+        sql = constant.sqlSelect1 + username + "';"
         mycursor.execute(sql)
         result = mycursor.fetchone()
         name = result[1]
@@ -161,20 +145,20 @@ def getFullPage():
 
 def facebookLogin(username, password):
     driver.get("https://m.facebook.com/login/?next&ref=dbl&fl&refid=8")
-    element = driver.find_element(By.XPATH, '//*[@id="locale-selector"]/div/div[1]/div[3]/span/a')
+    element = driver.find_element(By.XPATH, constant.englishPath)
     element.click()
     time.sleep(2)
-    userInput = driver.find_element(By.XPATH, '//*[@id="m_login_email"]')
+    userInput = driver.find_element(By.XPATH, constant.userPath)
     userInput.send_keys(username)
-    passInput = driver.find_element(By.XPATH, '//*[@id="m_login_password"]')
+    passInput = driver.find_element(By.XPATH, constant.passPath)
     passInput.send_keys(password)
-    signButton = driver.find_element(By.XPATH, '//*[@id="login_password_step_element"]/button')
+    signButton = driver.find_element(By.XPATH, constant.loginButton)
     signButton.click()
     time.sleep(4)
     if driver.current_url == "https://m.facebook.com/login/?next&ref=dbl&fl&refid=8":
         raise Exception("Incorrect Login Credentials")
     elif driver.current_url == "https://m.facebook.com/login/save-device/?login_source=login#_=_":
-        driver.find_element(By.XPATH, '//*[@id="root"]/div[1]/div/div[2]/div[3]/div[1]/div/div/a').click()
+        driver.find_element(By.XPATH, constant.loginNotNow).click()
 
 
 Lusername = input("Enter your facebook username: ")
